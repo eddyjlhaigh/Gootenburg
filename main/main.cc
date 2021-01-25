@@ -1,27 +1,38 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <stdlib.h>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
+#include <sstream>
 
 using namespace std;
 
-string convertToLower(string str) 
-{
-    for(int i=0; i < str.length(); i++) {
-        if(str[i] != ' ')
-        {
-            str[i] = tolower(str[i]);
-        }
+string exec(const char* cmd) {
+    array<char, 128> buffer;
+    string result;
+    unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw runtime_error("popen() failed!");
     }
-    return str;
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
 }
 
-void readCharFile(string filePath)
+
+void searchFile(string filePath, string searchString)
 {
     ifstream in(filePath);
     char c;
-    string searchString = "Scrooge";
 
     if(in.is_open()) {
+        int occurences = 0;
+
         while(in.good()) {
             in.get(c);
             if (searchString[0] == c) {
@@ -36,10 +47,12 @@ void readCharFile(string filePath)
                     }
                 }
                 if (matchFound) {
-                    cout << "FOUND!" << endl;
+                    occurences += 1;
                 }
             }
         }
+
+        cout << filePath << ": " << occurences << endl;
     }
 
     if(!in.eof() && in.fail()) {
@@ -51,5 +64,12 @@ void readCharFile(string filePath)
 
 int main(int argc, char** argv) 
 {
-    readCharFile("./Books/A Christmas Carol");
+    auto bookNames = exec("./scripts_get_books.sh");
+    
+    istringstream f(bookNames);
+    string bookName;    
+    while (getline(f, bookName)) {
+        string filePath = "./Books/" + bookName;
+        searchFile(filePath, "Test");
+    }
 }
