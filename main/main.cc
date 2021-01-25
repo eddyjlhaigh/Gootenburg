@@ -1,17 +1,17 @@
+#include <array>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <stdlib.h>
-#include <cstdio>
 #include <memory>
-#include <stdexcept>
-#include <string>
-#include <array>
 #include <sstream>
+#include <stdexcept>
+#include <stdlib.h>
+#include <string>
 
 using namespace std;
 
-string exec(const char* cmd) {
+string exec(const char* cmd) 
+{
     array<char, 128> buffer;
     string result;
     unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
@@ -23,7 +23,6 @@ string exec(const char* cmd) {
     }
     return result;
 }
-
 
 void searchFile(string filePath, string searchString)
 {
